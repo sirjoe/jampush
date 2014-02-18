@@ -18,9 +18,11 @@ module Jampush
 	  @schedule_type = 'now'
 	end
 
-	def send_push
+	def push
     post_body = Hash[instance_variables.map { |name| [ name.to_s[1..-1], instance_variable_get(name)] } ] 
     puts URI.encode_www_form(post_body)
+
+
 	end
 
   end
@@ -37,5 +39,5 @@ end
 
 if __FILE__ == $0
   message = Jampush::message(:alert)
-  message.send_push
+  message.push
 end
