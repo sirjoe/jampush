@@ -20,9 +20,12 @@ module Jampush
 
 	def push
     post_body = Hash[instance_variables.map { |name| [ name.to_s[1..-1], instance_variable_get(name)] } ] 
-    puts URI.encode_www_form(post_body)
+    body = URI.encode_www_form(post_body)
 
-
+    uri = URI.parse('https://api.jampush.com.tw/rest-api.php')
+    response = Net::HTTP.post_form(uri, post_body)
+    puts response.code 
+    puts response.body
 	end
 
   end
