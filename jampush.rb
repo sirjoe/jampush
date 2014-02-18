@@ -4,7 +4,6 @@ require "yaml"
 
 module Jampush
   class Base
-  	#attr_accessor :ctrl, :subject, :target_type, :within, :schedule_type
     attr_accessor :config, :content, :target, :schedule
 
   	def initialize(type)
@@ -34,13 +33,16 @@ module Jampush
         else
           callbacks[:failure].call response
         end
+
       rescue InsufficientCallbackHandlerError => e
         puts e.message
         puts 'Reason: ' << e.reason
+
       rescue Exception => e
         puts 'Error occured while generating push notification via Jampush'
-      end
-  	end
+
+      end #eo begin-rescue-end
+  	end #eo push
 
     private
 
