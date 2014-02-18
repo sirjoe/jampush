@@ -18,7 +18,7 @@ module Jampush
 	  @schedule_type = 'now'
 	end
 
-	def push
+	def push(success_callback, failure_callback)
     post_body = Hash[instance_variables.map { |name| [ name.to_s[1..-1], instance_variable_get(name)] } ] 
     body = URI.encode_www_form(post_body)
 
