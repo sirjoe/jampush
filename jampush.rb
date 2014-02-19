@@ -189,6 +189,8 @@ if __FILE__ == $0
     :schedule_type => 'now'
   }
 
+
+
   success_hanlder = Proc.new do |response|
     puts 'success_hanlder ' + response.code.to_s
   end
