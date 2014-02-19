@@ -32,8 +32,8 @@ module Jampush
       :repeat_times => false,
       :repeat_trigger => false
     }
-
-  	def initialize
+    
+    def initialize
       load_config
 	  end
 
@@ -112,20 +112,6 @@ module Jampush
 
   end #eo class Base
 
-  class Alert < Base 
-    @@content_fields = {
-      :subject => true,
-      :button => false,
-      :custom => false
-    }
-
-    def initialize
-      @ctrl = 'sendpush_alert'
-      super
-    end
-
-  end #eo Alert<Base
-
   class InputFieldsNotProvidedError < Exception
     attr_accessor :reason
 
@@ -158,50 +144,9 @@ module Jampush
     end
   end
 
-  def self.message(type)
-  	#Base.new(:alert)
-    case type
-
-    when :alert
-      Alert.new
-    else
-      puts 'Invalid message type selected'
-    end
-  end
-
 end #eo module Jampush
 
-if __FILE__ == $0
-  message = Jampush::message(:alert)
 
-  message.content = {
-    :subject => "I love you sweetie!",
-    :button => "gan",
-    :custom => "cha"
-  }
-
-  message.target = {
-    :target_type => 'all',
-    :within => 'no'
-  }
-
-  message.schedule = {
-    :schedule_type => 'now'
-  }
-
-
-
-  success_hanlder = Proc.new do |response|
-    puts 'success_hanlder ' + response.code.to_s
-  end
-
-  failure_handler = Proc.new do |response|
-    puts 'failure_handler ' + response.code.to_s
-  end
-
-  message.push ( { :success => success_hanlder, :failure => failure_handler } )
-
-end
 
 
 
