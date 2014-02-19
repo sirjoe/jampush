@@ -4,24 +4,45 @@ require "yaml"
 
 module Jampush
   class Base
-    attr_accessor :config, :content, :target, :schedule
+    attr_accessor :content, :target, :schedule
+
+    @@target_fields = {
+      :target_type => true,
+      :device_ids => false,
+      :mac_address => false,
+      :app_ids => false,
+      :device_type => false,
+      :within => true,
+      :within_address => false,
+      :within_axis => false,
+      :within_range => false,
+      :within_limit => false,
+      :tags => false
+    }
+
+    @@schedule_fields = {
+      :schedule_type => true,
+      :schedule_start => false,
+      :schedule_offset => false,
+      :frequency => false,
+      :frequency_type => false,
+      :frequency_times => false,
+      :repeat => false,
+      :repeat_delay => false,
+      :repeat_times => false,
+      :repeat_trigger => false
+    }
 
   	def initialize
       load_config
-  	  
-  	  @target_type = 'all'
-  	  @subject = 'I want a happy life'
-  	  @within = 'no'
-  	  @schedule_type = 'now'
 	  end
 
     # param: hash { success:proc, failure:proc }
   	def push(callbacks)
       begin
         raise InsufficientCallbackHandlerError.new if callbacks[:success].nil? || callbacks[:failure].nil?
-        validate_required_fields_for(:content)
-        puts 'current class ---'
-        puts self.class.class_variables
+        
+        [:content, :target, :schedule].each { |i| validate_required_fields_for(i) }
 
         post_body = Hash[instance_variables.map { |name| [ name.to_s[1..-1], instance_variable_get(name)] } ] 
         body = URI.encode_www_form(post_body)
@@ -40,6 +61,18 @@ module Jampush
         end
 
       rescue InsufficientCallbackHandlerError => e
+        puts e.message
+        puts 'Reason: ' << e.reason
+
+      rescue InputFieldsNotProvidedError => e
+        puts e.message
+        puts 'Reason: ' << e.reason
+
+      rescue UnidentifiedKeyError => e
+        puts e.message
+        puts 'Reason: ' << e.reason
+
+      rescue MissingRequiredFieldsError => e
         puts e.message
         puts 'Reason: ' << e.reason
 
@@ -62,15 +95,20 @@ module Jampush
       required_fields = self.class.class_variable_get("@@#{type}_fields")
       input_fields = instance_variable_get("@#{type}")
 
+      raise InputFieldsNotProvidedError.new(type) unless input_fields
+
       input_fields.each do |key, value|
-        raise UnidentifiedKeyError unless required_fields.has_key?(key)
+        raise UnidentifiedKeyError.new unless required_fields.has_key?(key)
       end
 
       required_fields.each do |key, value|
-        raise MissingRequiredFieldsError unless input_fields.has_key?(key) if value
+        raise MissingRequiredFieldsError.new unless input_fields.has_key?(key) if value
+      end
+
+      input_fields.each do |key, value|
+        instance_variable_set("@#{key}", value)
       end
     end #eo validate_required_fields_for
-
 
   end #eo class Base
 
@@ -86,11 +124,17 @@ module Jampush
       super
     end
 
-    
+  end #eo Alert<Base
 
+  class InputFieldsNotProvidedError < Exception
+    attr_accessor :reason
+
+    def initialize(type)
+      @reason = 'Input field(s) not provided for "' << type.to_s << '"'
+    end
   end
 
-  class InsufficientCallbackHandlerError < StandardError
+  class InsufficientCallbackHandlerError < Exception
     attr_accessor :reason
 
     def initialize
@@ -98,7 +142,7 @@ module Jampush
     end
   end
 
-  class UnidentifiedKeyError < StandardError
+  class UnidentifiedKeyError < Exception
     attr_accessor :reason
 
     def initialize
@@ -106,7 +150,7 @@ module Jampush
     end
   end
 
-  class MissingRequiredFieldsError < StandardError
+  class MissingRequiredFieldsError < Exception
     attr_accessor :reason
 
     def initialize
@@ -131,7 +175,18 @@ if __FILE__ == $0
   message = Jampush::message(:alert)
 
   message.content = {
-    :subject => "Please give me a job!"
+    :subject => "I love you sweetie!",
+    :button => "gan",
+    :custom => "cha"
+  }
+
+  message.target = {
+    :target_type => 'all',
+    :within => 'no'
+  }
+
+  message.schedule = {
+    :schedule_type => 'now'
   }
 
   success_hanlder = Proc.new do |response|
